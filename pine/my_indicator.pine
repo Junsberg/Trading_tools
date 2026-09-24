@@ -1,0 +1,32 @@
+//@version=6
+// 나만의 지표 기본 템플릿 (BINANCE:BTCUSDT.P 1분봉 기준)
+// 사용법: 트레이딩뷰 Pine 에디터에 붙여넣기 → 저장 → 차트에 추가
+indicator("My Scalping Indicator", shorttitle = "MySI", overlay = true)
+
+// ── 입력값 ──────────────────────────────────────────
+fastLen = input.int(9,  "빠른 EMA", minval = 1)
+slowLen = input.int(21, "느린 EMA", minval = 1)
+rsiLen  = input.int(14, "RSI 기간", minval = 1)
+
+// ── 계산 ────────────────────────────────────────────
+fastEma = ta.ema(close, fastLen)
+slowEma = ta.ema(close, slowLen)
+rsi     = ta.rsi(close, rsiLen)
+
+// ── 신호 (로직 확정 전 임시 예시: EMA 크로스) ─────────
+longSignal  = ta.crossover(fastEma, slowEma)
+shortSignal = ta.crossunder(fastEma, slowEma)
+
+// ── 차트 표시 ───────────────────────────────────────
+plot(fastEma, "Fast EMA", color = color.teal)
+plot(slowEma, "Slow EMA", color = color.orange)
+plotshape(longSignal,  "Long",  shape.triangleup,   location.belowbar, color.green, size = size.small)
+plotshape(shortSignal, "Short", shape.triangledown, location.abovebar, color.red,   size = size.small)
+
+// ── API/봇에서 읽을 값 (차트에는 숨김) ──────────────
+plot(rsi, "RSI", display = display.data_window)
+plot(longSignal ? 1 : shortSignal ? -1 : 0, "Signal", display = display.data_window)
+
+// ── 알림 (웹훅 연동용) ──────────────────────────────
+alertcondition(longSignal,  "Long",  '{"side":"long","symbol":"{{ticker}}","price":{{close}}}')
+alertcondition(shortSignal, "Short", '{"side":"short","symbol":"{{ticker}}","price":{{close}}}')

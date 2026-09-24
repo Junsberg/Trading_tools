@@ -1,0 +1,15 @@
+{
+  "name": "tv-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TradingView 비공식 API로 BTCUSDT.P 실시간 데이터 및 내 지표 값 수신",
+  "scripts": {
+    "realtime": "node src/realtime.js",
+    "login": "node src/login.js",
+    "my-indicator": "node src/my-indicator.js"
+  },
+  "dependencies": {
+    "@mathieuc/tradingview": "^3.5.2",
+    "dotenv": "^16.4.5"
+  }
+}
