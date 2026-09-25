@@ -6,7 +6,9 @@
   "scripts": {
     "realtime": "node src/realtime.js",
     "login": "node src/login.js",
-    "my-indicator": "node src/my-indicator.js"
+    "my-indicator": "node src/my-indicator.js",
+    "backtest": "node src/backtest.js",
+    "sweep": "node src/sweep.js"
   },
   "dependencies": {
     "@mathieuc/tradingview": "^3.5.2",

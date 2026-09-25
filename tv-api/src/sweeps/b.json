@@ -1,0 +1,12 @@
+[
+  { "label": "B 기본",          "set": {} },
+  { "label": "ADX 끔",          "set": { "ADX 필터": false } },
+  { "label": "RSI 끔",          "set": { "RSI 극단": false } },
+  { "label": "필터 모두 끔",     "set": { "ADX 필터": false, "RSI 극단": false } },
+  { "label": "밴드 k 2.5",      "set": { "밴드 배수": 2.5 } },
+  { "label": "밴드 k 1.5",      "set": { "밴드 배수": 1.5 } },
+  { "label": "VWAP청산 끔",     "set": { "VWAP 도달": false } },
+  { "label": "ADX 상한 20",     "set": { "ADX 상한": 20 } },
+  { "label": "손절 0.8",        "set": { "손절": 0.8 } },
+  { "label": "최소거리 0.5",    "set": { "최소 VWAP 거리": 0.5 } }
+]

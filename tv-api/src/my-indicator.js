@@ -1,6 +1,6 @@
 // 내 트레이딩뷰 계정에 저장된 개인 지표(Pine)의 값을 실시간으로 수신
 require('dotenv').config();
-const TradingView = require('@mathieuc/tradingview');
+const TradingView = require('./tv'); // zlib 리포트 대응 래퍼
 
 const { SESSION, SIGNATURE } = process.env;
 const SYMBOL = process.env.SYMBOL || 'BINANCE:BTCUSDT.P';

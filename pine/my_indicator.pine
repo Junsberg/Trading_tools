@@ -1,25 +1,36 @@
 //@version=6
-// 나만의 지표 기본 템플릿 (BINANCE:BTCUSDT.P 1분봉 기준)
-// 사용법: 트레이딩뷰 Pine 에디터에 붙여넣기 → 저장 → 차트에 추가
+// 나만의 지표 (BINANCE:BTCUSDT.P 5분봉 기준) — 실전 차트 적용 + 알림 웹훅용
+// - 신호 로직은 my_strategy.pine 과 항상 동일하게 유지할 것
+// - 사용법: 트레이딩뷰 Pine 에디터에 붙여넣기 → 저장 → 차트에 추가
+// - 알림 생성 시 "봉 마감 시 1회(Once Per Bar Close)" 로 설정할 것
 indicator("My Scalping Indicator", shorttitle = "MySI", overlay = true)
 
 // ── 입력값 ──────────────────────────────────────────
 fastLen = input.int(9,  "빠른 EMA", minval = 1)
 slowLen = input.int(21, "느린 EMA", minval = 1)
 rsiLen  = input.int(14, "RSI 기간", minval = 1)
+htfTf   = input.timeframe("15", "추세 필터 타임프레임")
+useHtf  = input.bool(true, "상위 타임프레임 추세 필터 사용")
 
 // ── 계산 ────────────────────────────────────────────
 fastEma = ta.ema(close, fastLen)
 slowEma = ta.ema(close, slowLen)
 rsi     = ta.rsi(close, rsiLen)
 
+// 상위 타임프레임 참조: lookahead 금지 + 확정봉(close[1]) 사용 → 리페인팅 없음
+htfEma  = request.security(syminfo.tickerid, htfTf, ta.ema(close, slowLen)[1], lookahead = barmerge.lookahead_off)
+upTrend = not useHtf or close > htfEma
+dnTrend = not useHtf or close < htfEma
+
 // ── 신호 (로직 확정 전 임시 예시: EMA 크로스) ─────────
-longSignal  = ta.crossover(fastEma, slowEma)
-shortSignal = ta.crossunder(fastEma, slowEma)
+// barstate.isconfirmed: 확정된 봉에서만 신호 발생 (리페인팅 방지)
+longSignal  = ta.crossover(fastEma, slowEma)  and upTrend and barstate.isconfirmed
+shortSignal = ta.crossunder(fastEma, slowEma) and dnTrend and barstate.isconfirmed
 
 // ── 차트 표시 ───────────────────────────────────────
 plot(fastEma, "Fast EMA", color = color.teal)
 plot(slowEma, "Slow EMA", color = color.orange)
+plot(htfEma,  "HTF EMA",  color = color.gray, style = plot.style_stepline)
 plotshape(longSignal,  "Long",  shape.triangleup,   location.belowbar, color.green, size = size.small)
 plotshape(shortSignal, "Short", shape.triangledown, location.abovebar, color.red,   size = size.small)
 
@@ -28,5 +39,5 @@ plot(rsi, "RSI", display = display.data_window)
 plot(longSignal ? 1 : shortSignal ? -1 : 0, "Signal", display = display.data_window)
 
 // ── 알림 (웹훅 연동용) ──────────────────────────────
-alertcondition(longSignal,  "Long",  '{"side":"long","symbol":"{{ticker}}","price":{{close}}}')
-alertcondition(shortSignal, "Short", '{"side":"short","symbol":"{{ticker}}","price":{{close}}}')
+alertcondition(longSignal,  "Long",  '{"side":"long","symbol":"{{ticker}}","price":{{close}},"time":"{{time}}"}')
+alertcondition(shortSignal, "Short", '{"side":"short","symbol":"{{ticker}}","price":{{close}},"time":"{{time}}"}')

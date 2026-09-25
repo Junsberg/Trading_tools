@@ -1,0 +1,8 @@
+[
+  { "label": "A v2 테이커 0.04",    "set": {} },
+  { "label": "A v2 메이커 0.02",    "set": { "Commission Value": 0.02 } },
+  { "label": "A 수축0.5 테이커",    "set": { "수축 기준": 0.5 } },
+  { "label": "A 수축0.5 메이커",    "set": { "수축 기준": 0.5, "Commission Value": 0.02 } },
+  { "label": "A 1h추세 메이커",     "set": { "추세 필터 타임프레임": "60", "Commission Value": 0.02 } },
+  { "label": "A 수수료 0 (상한선)", "set": { "Commission Value": 0 } }
+]

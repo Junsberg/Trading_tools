@@ -1,0 +1,8 @@
+[
+  { "label": "B 기본 테이커 0.04",  "set": {} },
+  { "label": "B 기본 메이커 0.02",  "set": { "Commission Value": 0.02 } },
+  { "label": "B ADX끔 메이커",      "set": { "ADX 필터": false, "Commission Value": 0.02 } },
+  { "label": "B 필터끔 메이커",     "set": { "ADX 필터": false, "RSI 극단": false, "Commission Value": 0.02 } },
+  { "label": "B VWAP청산끔 메이커", "set": { "VWAP 도달": false, "Commission Value": 0.02 } },
+  { "label": "B 수수료 0 (상한선)", "set": { "Commission Value": 0 } }
+]
