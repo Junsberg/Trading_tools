@@ -1,3 +1,5 @@
 node_modules/
 .env
 tv-api/reports/
+py-backtest/data/
+__pycache__/

@@ -8,7 +8,8 @@
     "login": "node src/login.js",
     "my-indicator": "node src/my-indicator.js",
     "backtest": "node src/backtest.js",
-    "sweep": "node src/sweep.js"
+    "sweep": "node src/sweep.js",
+    "dump": "node src/dump-study.js"
   },
   "dependencies": {
     "@mathieuc/tradingview": "^3.5.2",
