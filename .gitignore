@@ -3,3 +3,4 @@ node_modules/
 tv-api/reports/
 py-backtest/data/
 __pycache__/
+py-backtest/reports_*.csv
