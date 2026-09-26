@@ -46,7 +46,7 @@ def fetch(symbol: str, interval: str, start_ms: int, end_ms: int) -> pd.DataFram
         time.sleep(0.15)  # 레이트리밋 여유
     print()
     df = pd.DataFrame(rows, columns=COLS)
-    df = df[["time", "open", "high", "low", "close", "volume", "trades"]].astype(float)
+    df = df[["time", "open", "high", "low", "close", "volume", "trades", "taker_buy_base", "quote_volume"]].astype(float)
     df["time"] = (df["time"] // 1000).astype(int)
     df["trades"] = df["trades"].astype(int)
     return df
