@@ -1,6 +1,6 @@
 """Ultimate 구름대 레짐 × 트리거 스크리닝 (바이비트 5분봉 덤프 사용)
 
-사용: python screen_cloud.py BTCUSDT [ETHUSDT ...]
+사용: python screen_cloud.py BTCUSDT [ETHUSDT ...] [--tf 1]   (기본 5분봉; --tf 1 이면 1분봉 덤프, 0번 구름 제외)
 입력: tv-api/reports/study_ULT_SQ_BYBIT_<SYM>_P_5m_*.csv (dump-study.js 결과, 구간별 병합)
 """
 import glob, sys
@@ -8,11 +8,12 @@ import numpy as np, pandas as pd
 from rule_backtest import backtest, stats, random_baseline, by_period
 
 sys.stdout.reconfigure(encoding="utf-8")
-D = 288
+TF = 1 if "--tf" in sys.argv and sys.argv[sys.argv.index("--tf") + 1] == "1" else 5
+D = 1440 // TF  # 하루 봉 수
 
 
 def load(sym):
-    fs = sorted(glob.glob(f"../tv-api/reports/study_ULT_SQ_BYBIT_{sym}_P_5m_*.csv"))
+    fs = sorted(glob.glob(f"../tv-api/reports/study_ULT_SQ_BYBIT_{sym}_P_5m_*.csv" if TF == 5 else f"../tv-api/reports/study_ULT_BYBIT_{sym}_P_1m_*.csv"))
     df = pd.concat([pd.read_csv(f) for f in fs]).drop_duplicates("time").sort_values("time").reset_index(drop=True)
     for c in ("open", "high", "low", "close", "volume"):
         df[c] = pd.to_numeric(df[c], errors="coerce").ffill().bfill()
@@ -44,27 +45,28 @@ def build(df):
     }
     N = 20
     hh = c > h.rolling(N).max().shift(1); ll = c < l.rolling(N).min().shift(1)
-    touch = {k: ((l <= hi[k]) & (c > hi[k]) & (c.shift(1) > hi[k].shift(1)), (h >= lo[k]) & (c < lo[k]) & (c.shift(1) < lo[k].shift(1))) for k in (0, 1, 2, 3)}
-    cross = {k: ((c.shift(1) < hi[k].shift(1)) & (c > hi[k]), (c.shift(1) > lo[k].shift(1)) & (c < lo[k])) for k in (1, 2, 3)}
+    touch = {k: ((l <= hi[k]) & (c > hi[k]) & (c.shift(1) > hi[k].shift(1)), (h >= lo[k]) & (c < lo[k]) & (c.shift(1) < lo[k].shift(1))) for k in (0, 1, 2, 3, 4)}
+    cross = {k: ((c.shift(1) < hi[k].shift(1)) & (c > hi[k]), (c.shift(1) > lo[k].shift(1)) & (c < lo[k])) for k in (1, 2, 3, 4)}
     rh, rl = h.rolling(D).max(), l.rolling(D).min(); rng = rh - rl
     contr = rng.shift(1) < 0.6 * rng.rolling(5 * D).mean().shift(1)
     triggers = {
         "돌파20 추종": (hh, ll), "돌파20 페이드": (ll, hh),
-        "구름0 터치반등": touch[0], "구름1 터치반등": touch[1], "구름2 터치반등": touch[2], "구름3 터치반등": touch[3],
-        "구름1 상향돌파": cross[1], "구름2 상향돌파": cross[2], "구름3 상향돌파": cross[3],
+        **({"구름0 터치반등": touch[0]} if TF == 5 else {}),
+        "구름1 터치반등": touch[1], "구름2 터치반등": touch[2], "구름3 터치반등": touch[3], "구름4 터치반등": touch[4],
+        "구름1 상향돌파": cross[1], "구름2 상향돌파": cross[2], "구름3 상향돌파": cross[3], "구름4 상향돌파": cross[4],
         "일수축 24h돌파": (contr & (c > rh.shift(1)), contr & (c < rl.shift(1))),
     }
     return regimes, triggers
 
 
 def main():
-    syms = sys.argv[1:] or ["BTCUSDT"]
-    exits = [(1.0, 2.0, 144), (1.5, 3.0, 288), (2.0, 4.0, 576)]
+    syms = [a for a in sys.argv[1:] if not a.startswith("--") and a != "1"] or ["BTCUSDT"]
+    exits = [(1.0, 2.0, 144), (1.5, 3.0, 288), (2.0, 4.0, 576)] if TF == 5 else [(0.3, 0.6, 60), (0.5, 1.0, 180), (0.8, 1.6, 360), (1.0, 2.0, 720)]
     LIM = dict(entry_mode="limit", limit_offset_pct=0.05, fill_window=3)
     rows = []
     for sym in syms:
         df, nf = load(sym)
-        print(f"{sym}: 파일 {nf}개, 봉 {len(df):,}  {pd.to_datetime(df.time.iloc[0], unit='s'):%Y-%m-%d} ~ {pd.to_datetime(df.time.iloc[-1], unit='s'):%Y-%m-%d}", flush=True)
+        print(f"{sym} {TF}분봉: 파일 {nf}개, 봉 {len(df):,}  {pd.to_datetime(df.time.iloc[0], unit='s'):%Y-%m-%d} ~ {pd.to_datetime(df.time.iloc[-1], unit='s'):%Y-%m-%d}", flush=True)
         regimes, triggers = build(df)
         for rn, (bull, bear) in regimes.items():
             for tn, (tl, ts) in triggers.items():
@@ -94,7 +96,7 @@ def main():
         both = both[both.n_sym == len(syms)].sort_values("초과_min", ascending=False)
         print("\n══ 모든 심볼에서 동시에 살아남는 조합 (초과 최소값 순) ══")
         print(both.head(15).to_string(index=False))
-    res.to_csv("reports_screen_cloud.csv", index=False)
+    res.to_csv(f"reports_screen_cloud_{TF}m.csv", index=False)
 
 
 if __name__ == "__main__":
