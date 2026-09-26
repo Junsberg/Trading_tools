@@ -4,7 +4,9 @@ import numpy as np, pandas as pd
 from rule_backtest import backtest, summary, by_period
 sys.stdout.reconfigure(encoding="utf-8")
 
-fs = sorted(glob.glob("../tv-api/reports/study_ULT_SQ_BYBIT_BTCUSDT_P_5m_*.csv"))
+SYM = sys.argv[1] if len(sys.argv) > 1 else "BTCUSDT"  # 사용: python ult_hypotheses.py SOLUSDT
+fs = sorted(glob.glob(f"../tv-api/reports/study_ULT_SQ_BYBIT_{SYM}_P_5m_*.csv"))
+print("심볼:", SYM)
 df = pd.concat([pd.read_csv(f) for f in fs]).drop_duplicates("time").sort_values("time").reset_index(drop=True)
 for c in ("open", "high", "low", "close"):
     df[c] = pd.to_numeric(df[c], errors="coerce").ffill().bfill()
